@@ -15,6 +15,7 @@ if (!tmdbKey || tmdbKey === 'tu_clave_de_tmdb_aqui') {
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const axios = require('axios');
 
 // Inicializar la aplicación Express
 const app = express();
@@ -39,6 +40,67 @@ app.get('/api/health', (req, res) => {
     message: 'Servidor CineClub activo'
   });
 });
+
+// Endpoint 1: Búsqueda de películas en TMDB
+app.get('/api/movies/search', async (req, res) => {
+  const query = req.query.q;
+
+  if (!query) {
+    return res.status(400).json({
+      error: "El parámetro de búsqueda 'q' es requerido"
+    });
+  }
+
+  try {
+    const response = await axios.get('https://api.themoviedb.org/3/search/movie', {
+      params: {
+        api_key: process.env.TMDB_API_KEY,
+        query: query,
+        language: 'es-ES'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error al buscar películas en TMDB:', error.message);
+    res.status(500).json({
+      error: 'Error al comunicarse con la API de TMDB'
+    });
+  }
+});
+
+// Endpoint 2: Detalle de una película específica estructurado
+app.get('/api/movies/:tmdbId', async (req, res) => {
+  const { tmdbId } = req.params;
+
+  try {
+    const response = await axios.get(`https://api.themoviedb.org/3/movie/${tmdbId}`, {
+      params: {
+        api_key: process.env.TMDB_API_KEY,
+        language: 'es-ES'
+      }
+    });
+
+    // Estructura de respuesta unificada requerida por el frontend
+    res.json({
+      movie: response.data,
+      reviews: [],
+      avgScore: 0
+    });
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      return res.status(404).json({
+        error: 'Película no encontrada en TMDB'
+      });
+    }
+
+    console.error(`Error al obtener detalle de película ${tmdbId}:`, error.message);
+    res.status(500).json({
+      error: 'Error al comunicarse con la API de TMDB'
+    });
+  }
+});
+
 
 // --- INICIALIZACIÓN ---
 
