@@ -1,6 +1,16 @@
 // Cargar variables de entorno al inicio
 require('dotenv').config();
 
+// Validar clave de la API de TMDB en las variables de entorno
+const tmdbKey = process.env.TMDB_API_KEY;
+if (!tmdbKey || tmdbKey === 'tu_clave_de_tmdb_aqui') {
+  console.warn(
+    '\x1b[33m%s\x1b[0m',
+    'ADVERTENCIA: La clave API de TMDB (TMDB_API_KEY) no está configurada o contiene el valor por defecto en el archivo .env.'
+  );
+}
+
+
 // Importar módulos requeridos
 const express = require('express');
 const cors = require('cors');
