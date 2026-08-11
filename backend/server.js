@@ -20,6 +20,9 @@ const axios = require('axios');
 // Inicializar la aplicación Express
 const app = express();
 
+// Almacenamiento en memoria para las reseñas
+let reviews = [];
+
 // --- MIDDLEWARES GLOBALES ---
 
 // 1. CORS: Habilitar peticiones cross-origin para conectar el frontend
@@ -69,7 +72,7 @@ app.get('/api/movies/search', async (req, res) => {
   }
 });
 
-// Endpoint 2: Detalle de una película específica estructurado
+// Endpoint 2: Detalle de una película específica estructurado con cálculo de reseñas
 app.get('/api/movies/:tmdbId', async (req, res) => {
   const { tmdbId } = req.params;
 
@@ -81,11 +84,21 @@ app.get('/api/movies/:tmdbId', async (req, res) => {
       }
     });
 
+    // Obtener las reseñas correspondientes a esta película
+    const movieReviews = reviews.filter(r => r.tmdbId === tmdbId);
+
+    // Calcular el promedio redondeado a 1 decimal
+    let avgScore = 0;
+    if (movieReviews.length > 0) {
+      const totalScore = movieReviews.reduce((sum, review) => sum + review.score, 0);
+      avgScore = Number((totalScore / movieReviews.length).toFixed(1));
+    }
+
     // Estructura de respuesta unificada requerida por el frontend
     res.json({
       movie: response.data,
-      reviews: [],
-      avgScore: 0
+      reviews: movieReviews,
+      avgScore: avgScore
     });
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -100,6 +113,62 @@ app.get('/api/movies/:tmdbId', async (req, res) => {
     });
   }
 });
+
+// Endpoint 3: Crear una reseña para una película
+app.post('/api/movies/:tmdbId/reviews', (req, res) => {
+  const { tmdbId } = req.params;
+  const { author, score, comment } = req.body;
+
+  // Validación de existencia de campos
+  if (!author || score === undefined || !comment || String(author).trim() === '' || String(comment).trim() === '') {
+    return res.status(400).json({
+      error: 'Todos los campos son obligatorios: author, score y comment'
+    });
+  }
+
+  // Validación de tipo de dato y rango para el puntaje (score)
+  const parsedScore = Number(score);
+  if (isNaN(parsedScore) || parsedScore < 1 || parsedScore > 5) {
+    return res.status(400).json({
+      error: 'El puntaje (score) debe ser un número entre 1 y 5'
+    });
+  }
+
+  // Creación del objeto de reseña
+  const newReview = {
+    id: Date.now().toString(),
+    tmdbId: tmdbId,
+    author: String(author).trim(),
+    score: parsedScore,
+    comment: String(comment).trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  reviews.push(newReview);
+
+  res.status(201).json(newReview);
+});
+
+// Endpoint 4: Eliminar una reseña específica por ID
+app.delete('/api/reviews/:reviewId', (req, res) => {
+  const { reviewId } = req.params;
+
+  const reviewIndex = reviews.findIndex(r => r.id === reviewId);
+
+  if (reviewIndex === -1) {
+    return res.status(404).json({
+      error: 'Reseña no encontrada'
+    });
+  }
+
+  reviews.splice(reviewIndex, 1);
+
+  res.json({
+    message: 'Reseña eliminada correctamente',
+    reviewId: reviewId
+  });
+});
+
 
 
 // --- INICIALIZACIÓN ---
