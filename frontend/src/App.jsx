@@ -16,23 +16,23 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  // 1. Función para buscar películas consumiendo la API backend
+  // 1. Búsqueda de Películas
   const handleSearch = async (query) => {
     if (!query || !query.trim()) return;
 
-    setIsLoading(true);
+    // Limpieza de estado de error previo e inicio de carga
     setErrorMessage(null);
+    setIsLoading(true);
 
     try {
       const response = await fetch(
         `${API_URL}/api/movies/search?q=${encodeURIComponent(query.trim())}`
       );
 
+      // Verificación de respuesta ok
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || `Error en la búsqueda (${response.status})`
-        );
+        throw new Error(errorData.error || 'Ocurrió un error en el servidor');
       }
 
       const data = await response.json();
@@ -45,19 +45,19 @@ function App() {
     }
   };
 
-  // 2. Función interna para cargar/recargar los detalles de una película específica
+  // 2. Detalle de Película (Función interna)
   const fetchMovieDetails = async (tmdbId) => {
-    setIsLoading(true);
+    // Limpieza de estado de error previo e inicio de carga
     setErrorMessage(null);
+    setIsLoading(true);
 
     try {
       const response = await fetch(`${API_URL}/api/movies/${tmdbId}`);
 
+      // Verificación de respuesta ok
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || `Error al obtener detalle (${response.status})`
-        );
+        throw new Error(errorData.error || 'Ocurrió un error en el servidor');
       }
 
       const data = await response.json();
@@ -85,12 +85,13 @@ function App() {
     setErrorMessage(null);
   };
 
-  // 3. Función para enviar una nueva reseña al backend
+  // 3. Crear Reseña
   const handleSubmitReview = async (reviewData) => {
     if (!selectedMovieId) return;
 
-    setIsLoading(true);
+    // Limpieza de estado de error previo e inicio de carga
     setErrorMessage(null);
+    setIsLoading(true);
 
     try {
       const response = await fetch(
@@ -104,11 +105,10 @@ function App() {
         }
       );
 
+      // Verificación de respuesta ok
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || 'No se pudo guardar la reseña'
-        );
+        throw new Error(errorData.error || 'Ocurrió un error en el servidor');
       }
 
       // Refrescar los detalles para recalcular avgScore y mostrar la nueva reseña
@@ -120,23 +120,23 @@ function App() {
     }
   };
 
-  // 4. Función para eliminar una reseña existente en el backend
+  // 4. Eliminar Reseña
   const handleDeleteReview = async (reviewId) => {
     if (!selectedMovieId || !reviewId) return;
 
-    setIsLoading(true);
+    // Limpieza de estado de error previo e inicio de carga
     setErrorMessage(null);
+    setIsLoading(true);
 
     try {
       const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
         method: 'DELETE'
       });
 
+      // Verificación de respuesta ok
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || 'No se pudo eliminar la reseña'
-        );
+        throw new Error(errorData.error || 'Ocurrió un error en el servidor');
       }
 
       // Refrescar los detalles para recalcular avgScore y actualizar la lista
