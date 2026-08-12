@@ -119,20 +119,27 @@ app.post('/api/movies/:tmdbId/reviews', (req, res) => {
   const { tmdbId } = req.params;
   const { author, score, comment } = req.body;
 
-  // Validación de existencia de campos
-  if (!author || score === undefined || !comment || String(author).trim() === '' || String(comment).trim() === '') {
+  // Validación de campos obligatorios
+  if (
+    author === undefined || author === null ||
+    score === undefined || score === null ||
+    comment === undefined || comment === null ||
+    String(author).trim() === '' ||
+    String(comment).trim() === ''
+  ) {
     return res.status(400).json({
-      error: 'Todos los campos son obligatorios: author, score y comment'
+      error: 'Todos los campos (author, score, comment) son obligatorios'
     });
   }
 
-  // Validación de tipo de dato y rango para el puntaje (score)
+  // Validación de tipo de dato, finitud y rango para el puntaje (score)
   const parsedScore = Number(score);
-  if (isNaN(parsedScore) || parsedScore < 1 || parsedScore > 5) {
+  if (isNaN(parsedScore) || !Number.isFinite(parsedScore) || parsedScore < 1 || parsedScore > 5) {
     return res.status(400).json({
-      error: 'El puntaje (score) debe ser un número entre 1 y 5'
+      error: 'El puntaje debe ser un número entre 1 y 5'
     });
   }
+
 
   // Creación del objeto de reseña
   const newReview = {
