@@ -10,6 +10,10 @@ function App() {
   const [movies, setMovies] = useState([]);
   const [selectedMovieData, setSelectedMovieData] = useState(null);
 
+  // Estados de carga y manejo de errores para peticiones HTTP
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+
   // Manejador para seleccionar película y cambiar a vista detalle
   const handleSelectMovie = (tmdbId) => {
     setSelectedMovieId(tmdbId);
@@ -21,6 +25,7 @@ function App() {
     setCurrentView('search');
     setSelectedMovieId(null);
     setSelectedMovieData(null);
+    setErrorMessage(null);
   };
 
   // Manejador simulado de búsqueda (a conectar con backend en el siguiente módulo)
@@ -47,6 +52,24 @@ function App() {
       </header>
 
       <main className="app-main">
+        {/* Banner visual de error */}
+        {errorMessage && (
+          <div className="error-banner">
+            <span>❌ {errorMessage}</span>
+            <button onClick={() => setErrorMessage(null)} className="close-error">
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Indicador visual de carga */}
+        {isLoading && (
+          <div className="loading-indicator">
+            <div className="spinner"></div>
+            <p>Cargando películas...</p>
+          </div>
+        )}
+
         {currentView === 'search' ? (
           <div className="search-view">
             <SearchBar onSearch={handleSearch} />

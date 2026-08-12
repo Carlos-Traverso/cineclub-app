@@ -4,13 +4,18 @@ function ReviewForm({ onSubmitReview }) {
   const [author, setAuthor] = useState('');
   const [score, setScore] = useState(5);
   const [comment, setComment] = useState('');
+  const [warningMessage, setWarningMessage] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validación local de campos vacíos
     if (!author.trim() || !comment.trim()) {
-      alert('Por favor, completa todos los campos.');
+      setWarningMessage('Por favor, completa todos los campos (nombre y comentario) antes de enviar.');
       return;
     }
+
+    setWarningMessage(null);
 
     if (onSubmitReview) {
       onSubmitReview({
@@ -28,15 +33,24 @@ function ReviewForm({ onSubmitReview }) {
   return (
     <form className="review-form" onSubmit={handleSubmit}>
       <h3>Escribir una reseña</h3>
+
+      {warningMessage && (
+        <div className="warning-banner">
+          ⚠️ {warningMessage}
+        </div>
+      )}
+
       <div className="form-group">
         <label htmlFor="author">Nombre/Autor:</label>
         <input
           id="author"
           type="text"
           value={author}
-          onChange={(e) => setAuthor(e.target.value)}
+          onChange={(e) => {
+            setAuthor(e.target.value);
+            if (warningMessage) setWarningMessage(null);
+          }}
           placeholder="Tu nombre"
-          required
         />
       </div>
 
@@ -61,9 +75,11 @@ function ReviewForm({ onSubmitReview }) {
           id="comment"
           rows="4"
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          onChange={(e) => {
+            setComment(e.target.value);
+            if (warningMessage) setWarningMessage(null);
+          }}
           placeholder="Escribe tu opinión sobre la película..."
-          required
         />
       </div>
 
